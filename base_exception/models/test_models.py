@@ -6,12 +6,53 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
-testing = tools.config.get('test_enable') or os.environ.get('ODOO_TEST_ENABLE')
+testing = tools.config.get('test_enable') \
+    or os.environ.get('ODOO_TEST_ENABLE') \
+    or os.environ.get('TESTS')
+
 if testing:
+    class TestMixin(models.AbstractModel):
+        """Mixin for giving magic powers to test models."""
+        _name = 'test.mixin'
+        MOD_NAME = 'base_exception'
+
+        @api.model
+        def _setup_complete(self):
+            super(TestMixin, self)._setup_complete()
+            self._setup_ACL()
+
+        def _setup_ACL(self):
+            """Setup ACL on the fly for any test model.
+
+            This makes Odoo happy :)
+            """
+            xmlid = 'access_test_{}'.format(self._table)
+            if (self._auto and
+                    not self.env.ref(xmlid, raise_if_not_found=False)):
+                header = ['id', 'name', 'model_id:id', 'group_id:id',
+                          'perm_read', 'perm_write',
+                          'perm_create', 'perm_unlink']
+                acl_data = [
+                    [xmlid,
+                     'access_test_{}'.format(self._table),
+                     '{module}.model_{model}'.format(
+                        module=self.MOD_NAME,
+                        model=self._table,
+                     ),
+                     'base.group_system',
+                     '1', '1', '1', '1'],
+                ]
+                result = self.env['ir.model.access'].load(header, acl_data)
+                if result['messages']:
+                    _logger.warning(result['messages'])
+
     class PurchaseTest(models.Model):
-        _inherit = 'base.exception'
         _name = "base.exception.test.purchase"
-        _description = "Base Ecxeption Test Model"
+        _inherit = [
+            'base.exception',
+            'test.mixin',
+        ]
+        _description = "Base Exception Test Model"
 
         rule_group = fields.Selection(
             selection_add=[('test_base', 'test')],
@@ -68,6 +109,7 @@ if testing:
 
     class LineTest(models.Model):
         _name = "base.exception.test.purchase.line"
+        _inherit = 'test.mixin'
         _description = "Base Ecxeption Test Model Line"
 
         name = fields.Char()
