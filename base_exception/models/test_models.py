@@ -30,8 +30,8 @@ if testing:
             if (self._auto and
                     not self.env.ref(xmlid, raise_if_not_found=False)):
                 model_xmlid = '{module}.model_{model}'.format(
-                   module=self.MOD_NAME,
-                   model=self._table,
+                    module=self.MOD_NAME,
+                    model=self._table,
                 )
                 # the model can be not registered yet
                 if self.env.ref(model_xmlid, raise_if_not_found=False):
