@@ -42,7 +42,7 @@ if testing:
                         [xmlid,
                          'access_test_{}'.format(self._table),
                          model_xmlid,
-                         'base.group_system',
+                         '',
                          '1', '1', '1', '1'],
                     ]
                     result = self.env['ir.model.access'].load(header, acl_data)
