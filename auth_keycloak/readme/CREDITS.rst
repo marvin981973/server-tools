@@ -1,0 +1,1 @@
+Development sponsored by `Sensefly <https://www.sensefly.com/>`_.
